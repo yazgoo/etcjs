@@ -15,6 +15,7 @@ require('./Paths.js').root = store_path
 console.log(require('./Paths.js').root)
 server.start(port, router.route, {
     "/owner/create" : request_handler.create_owner,
-    "/config/get" : request_handler.get_config,
-    "/config/set" : request_handler.set_config,
+    "/config/get"   : request_handler.get_config,
+    "/config/set"   : request_handler.set_config,
+    "/config/list"  : request_handler.list_config,
 })

@@ -54,6 +54,19 @@ function get_config(response, post)
         })
     })
 }
+function list_config(response, post)
+{
+    on_config(response, post, function(config, post)
+    {
+        config.list(function(err, names)
+        {
+            if(err == null)
+                for(i in names) response.write(names[i] + "\n")
+            response.end()
+        })
+    })
+}
 exports.create_owner = create_owner
 exports.set_config = set_config
 exports.get_config = get_config
+exports.list_config = list_config
