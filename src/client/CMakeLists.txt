@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.8)
+find_package(CURL REQUIRED)
+set(CMAKE_C_FLAGS "-g -Wall")
+add_library(etcjs etcjs.c)
+add_executable(etcjs_cli etcjs_cli.c)
+target_link_libraries(etcjs_cli etcjs curl)
