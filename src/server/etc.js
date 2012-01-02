@@ -1,0 +1,20 @@
+var server = require("./server")
+var router = require("./router")
+var request_handler = require("./request_handler")
+var args = process.argv
+if(args.length != 4)
+{
+    console.log("Usage: " + args[0] + " " + args[1] + " port store")
+    console.log(" port\tthe port etcjs will listen to")
+    console.log(" store\tthe path to the store directory")
+    return
+}
+var port = parseInt(args[2])
+var store_path = args[3]
+require('./Paths.js').root = store_path
+console.log(require('./Paths.js').root)
+server.start(port, router.route, {
+    "/owner/create" : request_handler.create_owner,
+    "/config/get" : request_handler.get_config,
+    "/config/set" : request_handler.set_config,
+})
