@@ -72,10 +72,19 @@ char* etcjs_url_encode(va_list ap, int n, unsigned int length)
     va_end(ap);
     return result;
 }
-etcjs_result etcjs_post(const char* path, int n, ...)
+static size_t etcjs_curl_write(
+        void* contents, size_t size, size_t nmemb, void* userp)
+{
+    size_t realsize = nmemb * size;
+    char** destination = (char**)userp;
+    *destination = (char*) malloc(realsize);
+    contents = memcpy(*destination, contents, realsize);
+    return realsize;
+}
+etcjs_result* etcjs_post(char* path, int n, ...)
 {
     va_list ap;
-    etcjs_result result;
+    etcjs_result* result = malloc(sizeof(etcjs_result));
     char* url = etcjs_build_url(path);
     n *= 2;
     va_start(ap, n); 
@@ -84,20 +93,21 @@ etcjs_result etcjs_post(const char* path, int n, ...)
     char* post_fields = etcjs_url_encode(ap, n, length);
     curl_easy_setopt(handle, CURLOPT_URL, url);
     curl_easy_setopt(handle, CURLOPT_POSTFIELDS, post_fields);
+    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, etcjs_curl_write);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, (void *)&result->result);
     curl_easy_perform(handle);
     free(post_fields);
     free(url);
-    result.type = ETCJS_CONTENT;
-    result.result = 0;
+    result->type = ETCJS_CONTENT;
     return result;
 }
-etcjs_result etcjs_owner_create(etcjs_owner* owner)
+etcjs_result* etcjs_owner_create(etcjs_owner* owner)
 {
     return etcjs_post("owner/create", 2,
             "name", owner->name,
             "key",  owner->key);
 }
-etcjs_result etcjs_config_set(etcjs_owner* owner, char* name, char* content)
+etcjs_result* etcjs_config_set(etcjs_owner* owner, char* name, char* content)
 {
     return etcjs_post("config/set", 4,
             "owner",    owner->name,
@@ -105,16 +115,23 @@ etcjs_result etcjs_config_set(etcjs_owner* owner, char* name, char* content)
             "name",     name,
             "content",  content);
 }
-etcjs_result etcjs_config_get(etcjs_owner* owner, char* name)
+etcjs_result* etcjs_config_get(etcjs_owner* owner, char* name)
 {
     return etcjs_post("config/get", 3,
             "owner",    owner->name,
             "key",      owner->key,
             "name",     name);
 }
-etcjs_result etcjs_config_list(etcjs_owner* owner)
+etcjs_result* etcjs_config_list(etcjs_owner* owner)
 {
-    return etcjs_post("config/list", 2,
+    etcjs_result* result = etcjs_post("config/list", 2,
             "owner",    owner->name,
             "key",      owner->key);
+    result->type = ETCJS_LIST;
+    return result;
+}
+void etcjs_result_delete(etcjs_result* result)
+{
+    if(result->result != 0) free(result->result);
+    free(result);
 }

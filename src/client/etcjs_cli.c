@@ -26,6 +26,7 @@ void help()
     printf("  -n hostname\t\tthe server name (default is localhost)\n");
     printf("  -p port\t\tthe server port (default is 443)\n");
     printf("  -d data\t\tthe data to post (with set action)\n");
+    printf("  \t\t\tif not specified will create a blank one\n");
     printf("Examples:\n");
     printf("  etcjs_cli -o john -k sesame -a c -n etc.gpisc.in\n");
     printf("\twill create the user john with password sesame on etc.gpisc.in\n");
@@ -57,10 +58,10 @@ void parse_params(int argc, char** argv, params* p)
     }
     if(p->owner == NULL || p->key == NULL || p->action == NULL) help();
 }
-etcjs_result do_action(params* p)
+etcjs_result* do_action(params* p)
 {
     etcjs_owner* owner;
-    etcjs_result result;
+    etcjs_result* result;
     etcjs_init(p->host_name, p->port);
     owner = etcjs_owner_new(p->owner, p->key);
     switch(p->action[0])
@@ -76,15 +77,15 @@ etcjs_result do_action(params* p)
     etcjs_cleanup();
     return result;
 }
-void display_result(etcjs_result result)
+void display_result(etcjs_result* result)
 {
-    switch(result.type)
+    switch(result->type)
     {
-        case ETCJS_ERROR: printf("error %s", (char*) result.result); break;
-        case ETCJS_CONTENT: printf("%s", (char*) result.result); break;
-        case ETCJS_LIST: printf("list: TODO"); break;
+        case ETCJS_ERROR: printf("error %s", (char*) result->result); break;
+        case ETCJS_LIST:
+        case ETCJS_CONTENT: printf("%s", (char*) result->result); break;
     }
-    printf("\n");
+    etcjs_result_delete(result);
 }
 int main(int argc, char** argv)
 {
