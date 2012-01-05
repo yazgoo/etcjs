@@ -26,5 +26,10 @@ function Config(owner, name)
             callback(err, result)
         })
     }
+    this.stat = function(callback)
+    {
+        fs.stat(this.owner.paths.config(name),
+               function(err, stats) { callback(err, stats) })
+    }
 }
 module.exports.Config = Config
