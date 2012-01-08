@@ -1,6 +1,8 @@
 var fs = require('fs')
-var Owner = require('./Owner.js').Owner
-var Config = require('./Config.js').Config
+path = "../src/server/"
+var Owner = require(path + 'Owner.js').Owner
+var Config = require(path + 'Config.js').Config
+paths = require(path + 'Paths.js').root = process.argv[1]
 function print(x)
 {
     process['stdout'].write('' + x + '\n')
