@@ -7,7 +7,7 @@ function Owner(name, key)
     this.name = name
     var crypto = require('crypto')
       , shasum = crypto.createHash('sha1');
-    shasum.update("foo");
+    shasum.update(key);
     this.key = shasum.digest('hex')
     this.paths = new Paths().get(this.name)
     this.callback
@@ -42,8 +42,8 @@ function Owner(name, key)
     }
     this.validates = function(callback)
     {
-        fs.readFile(this.paths.config(name), null,
-               function(err, data) { callback(err, data == this.key) })
+        fs.readFile(this.paths.key_path, null,
+               function(err, data) { callback(err, data == self.key) })
     }
 }
 module.exports.Owner = Owner

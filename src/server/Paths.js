@@ -1,11 +1,7 @@
 var root
-function log()
-{
-    console.log(root)
-}
 function Paths()
 {
-    this.root = root
+    this.root = module.exports.root
     if(this.root == null) this.root = "../../store"
     self = this
     this.escape_special_chars = function(string) { return string }

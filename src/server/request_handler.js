@@ -2,13 +2,18 @@ var querystring = require('querystring')
 var sys = require('sys')
 var Owner = require('./Owner').Owner
 var Config = require('./Config').Config
+function write_header(response, ok)
+{
+    response.writeHead(ok?200:401,
+            {"Content-Type": "text/plain"})
+}
 function create_owner(response, post)
 {
     console.log("Request handler 'create_owner' was called.")
-    response.writeHead(200, {"Content-Type": "text/plain"})
     post = querystring.parse(post)
     new Owner(post.name, post.key).create(function(ok)
     {
+        write_header(response, ok)
         response.write("creating " + post.name + " " +
             (ok?"succeed":"fail") + "ed.\n")
         response.end()
@@ -18,12 +23,19 @@ function on_config(response, post, callback)
 {
     post = querystring.parse(post)
     owner = new Owner(post.owner, post.key)
-    response.writeHead(200, {"Content-Type": "text/plain"})
     owner.validates(function(err, validates)
     {
-        if(!validates) throw "does not validate " + err + " " +validates
-        var config = new Config(owner, post.name)
-        callback(config, post)
+        write_header(response, validates)
+        if(!validates)
+        {
+            response.write("does not validate " + err + " " +validates)
+            response.end()
+        }
+        else
+        {
+            var config = new Config(owner, post.name)
+            callback(config, post)
+        }
     })
 }
 function set_config(response, post)
@@ -32,15 +44,15 @@ function set_config(response, post)
     {
         if(post.content == null) 
         {       
+            write_header(response, false)
+            response.write("missing content")
             response.end()
             return
         }
         console.log("creating config " + post.content)
         config.set(post.content, function(err)
         {
-            response.write("creating " + post.name + " " + (err != null)+ " " +
-                ((err == null)?"succe":"fail") + "ed.\n")
-            response.end()
+            error_handling_write_parameter(response, err, "creating succeeded\n")
         })
     })
 }
@@ -50,10 +62,23 @@ function get_config(response, post)
     {
         config.get(function(data)
         {
-            response.write(data)
-            response.end()
+            error_handling_write_parameter(response, data == null?"no data found":null, data)
         })
     })
+}
+function error_handling_write_parameter(resp, err, parameter)
+{
+    error_handling_write(resp, err, parameter, function(parameter)
+    {
+        resp.write(parameter)
+    })
+}
+function error_handling_write(resp, err, parameter, callback)
+{
+    write_header(resp, err == null)
+    if(err == null) callback(parameter)
+    else resp.write(err + "\n")
+    resp.end()
 }
 function list_config(response, post)
 {
@@ -61,9 +86,10 @@ function list_config(response, post)
     {
         config.list(function(err, names)
         {
-            if(err == null)
+            error_handling_write(response, err, names, function(names)
+            {
                 for(i in names) response.write(names[i] + "\n")
-            response.end()
+            })
         })
     })
 }
@@ -73,12 +99,12 @@ function stat_config(response, post)
     {
         config.stat(function(err, stats)
         {
-            for(key in stats)
+            error_handling_write(response, err, stats, function(stats)
             {
-                if(typeof stats[key] != 'function')
-                    response.write(key + "=" + stats[key] + "\n")
-            }
-            response.end()
+                for(key in stats)
+                    if(typeof stats[key] != 'function')
+                        response.write(key + "=" + stats[key] + "\n")
+            })
         })
     })
 }
