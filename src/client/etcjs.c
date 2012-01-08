@@ -83,6 +83,7 @@ static size_t etcjs_curl_write(
 }
 etcjs_result* etcjs_post(char* path, int n, ...)
 {
+    long error_code;
     va_list ap;
     etcjs_result* result = malloc(sizeof(etcjs_result));
     char* url = etcjs_build_url(path);
@@ -96,9 +97,10 @@ etcjs_result* etcjs_post(char* path, int n, ...)
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, etcjs_curl_write);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, (void *)&result->result);
     curl_easy_perform(handle);
+    curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &error_code);
     free(post_fields);
     free(url);
-    result->type = ETCJS_CONTENT;
+    result->type = error_code == 200?ETCJS_CONTENT:ETCJS_ERROR;
     return result;
 }
 etcjs_result* etcjs_owner_create(etcjs_owner* owner)
