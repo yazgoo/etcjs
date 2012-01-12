@@ -68,6 +68,7 @@ etcjs_result* do_action(params* p)
     {
         case 'c': result = etcjs_owner_create(owner); break;
         case 'g': result = etcjs_config_get(owner, p->configuration); break;
+        case 'S': result = etcjs_config_stat(owner, p->configuration); break;
         case 's': result = etcjs_config_set(owner, p->configuration,
                           p->data == 0?"":p->data); break;
         case 'l': result = etcjs_config_list(owner); break;

@@ -77,16 +77,20 @@ static size_t etcjs_curl_write(
 {
     size_t realsize = nmemb * size;
     char** destination = (char**)userp;
-    *destination = (char*) malloc(realsize);
-    contents = memcpy(*destination, contents, realsize);
+    size_t previous_size = strlen(*destination);
+    *destination = (char*) realloc(
+            *destination, previous_size  + realsize + 1);
+    contents = memcpy(*destination + previous_size, contents, realsize);
     return realsize;
 }
-etcjs_result* etcjs_post(char* path, int n, ...)
+etcjs_result* etcjs_post(char* path, etcjs_type type, int n, ...)
 {
     long error_code;
     va_list ap;
     etcjs_result* result = malloc(sizeof(etcjs_result));
     char* url = etcjs_build_url(path);
+    result->result = (char*) malloc(1);
+    *((char*)result->result) = 0;
     n *= 2;
     va_start(ap, n); 
     unsigned int length = etcjs_url_length_get(ap, n);
@@ -100,18 +104,18 @@ etcjs_result* etcjs_post(char* path, int n, ...)
     curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &error_code);
     free(post_fields);
     free(url);
-    result->type = error_code == 200?ETCJS_CONTENT:ETCJS_ERROR;
+    result->type = error_code == 200?type:ETCJS_ERROR;
     return result;
 }
 etcjs_result* etcjs_owner_create(etcjs_owner* owner)
 {
-    return etcjs_post("owner/create", 2,
+    return etcjs_post("owner/create", ETCJS_CONTENT, 2,
             "name", owner->name,
             "key",  owner->key);
 }
 etcjs_result* etcjs_config_set(etcjs_owner* owner, char* name, char* content)
 {
-    return etcjs_post("config/set", 4,
+    return etcjs_post("config/set", ETCJS_CONTENT, 4,
             "owner",    owner->name,
             "key",      owner->key,
             "name",     name,
@@ -119,17 +123,24 @@ etcjs_result* etcjs_config_set(etcjs_owner* owner, char* name, char* content)
 }
 etcjs_result* etcjs_config_get(etcjs_owner* owner, char* name)
 {
-    return etcjs_post("config/get", 3,
+    return etcjs_post("config/get", ETCJS_CONTENT, 3,
             "owner",    owner->name,
             "key",      owner->key,
             "name",     name);
 }
 etcjs_result* etcjs_config_list(etcjs_owner* owner)
 {
-    etcjs_result* result = etcjs_post("config/list", 2,
+    etcjs_result* result = etcjs_post("config/list", ETCJS_LIST, 2,
             "owner",    owner->name,
             "key",      owner->key);
-    result->type = ETCJS_LIST;
+    return result;
+}
+etcjs_result* etcjs_config_stat(etcjs_owner* owner, char* name)
+{
+    etcjs_result* result = etcjs_post("config/list", ETCJS_CONTENT, 2,
+            "owner",    owner->name,
+            "key",      owner->key,
+            "name",     name);
     return result;
 }
 void etcjs_result_delete(etcjs_result* result)
