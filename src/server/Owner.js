@@ -13,7 +13,6 @@ function Owner(name, key)
     this.callback
     this.create_key = function(callback)
     {
-
         fs.writeFile(self.paths.key_path, self.key, callback)
     }
     this.create = function(callback)
