@@ -49,10 +49,30 @@ function set_config(response, post)
             response.end()
             return
         }
-        console.log("creating config " + post.content)
-        config.set(post.content, function(err)
+        console.log("setting config " + post.content)
+        config.set(post.offset, post.size, post.content, function(err)
         {
             error_handling_write_parameter(response, err, "creating succeeded\n")
+        })
+    })
+}
+function touch_config(response, post)
+{
+    on_config(response, post, function(config, post)
+    {
+        config.touch(function(err)
+        {
+            error_handling_write_parameter(response, err, "touch succeeded\n")
+        })
+    })
+}
+function delete_config(response, post)
+{
+    on_config(response, post, function(config, post)
+    {
+        config.remove(function(err)
+        {
+            error_handling_write_parameter(response, err, "remove succeeded\n")
         })
     })
 }
@@ -60,7 +80,7 @@ function get_config(response, post)
 {
     on_config(response, post, function(config, post)
     {
-        config.get(function(data)
+        config.get(post.offset, post.size, function(data)
         {
             error_handling_write_parameter(response, data == null?"no data found":null, data)
         })
@@ -111,5 +131,7 @@ function stat_config(response, post)
 exports.create_owner = create_owner
 exports.set_config = set_config
 exports.get_config = get_config
+exports.touch_config = touch_config
 exports.list_config = list_config
+exports.delete_config = delete_config
 exports.stat_config = stat_config

@@ -16,6 +16,8 @@ server.start(port, router.route, {
     "/owner/create" : request_handler.create_owner,
     "/config/get"   : request_handler.get_config,
     "/config/set"   : request_handler.set_config,
+    "/config/delete": request_handler.delete_config,
+    "/config/touch" : request_handler.touch_config,
     "/config/list"  : request_handler.list_config,
     "/config/stat"  : request_handler.stat_config,
 })

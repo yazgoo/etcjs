@@ -13,14 +13,19 @@ typedef struct
 void help()
 {
     printf("Usage:\n");
-    printf("  etcjs_cli -k key -o owner -a action [ -c configuration ]");
+    printf("  etcjs_cli [ -k key -o owner ] -a action [ -c configuration ]");
     printf(" [ -h ]\n");
-    printf("\t[ -n hostname ] [ -p port ] [ -d data ] \n");
+    printf("\t[ -n hostname -p port ] [ -d data ] \n");
     printf("Options:\n");
     printf("  -o owner\t\tthe owner of the configurations\n");
     printf("  -k key\t\tthe owner key\n");
-    printf("  -a action\t\tcan be: create set get list ");
-    printf("(only 1st letter matters)\n");
+    printf("  -a action\t\tcreate set get list, ");
+    printf("(only 1st letter matters) \n\t\t\tavailable actions: \n");
+    printf("\t\t\t  c: create owner\n");
+    printf("\t\t\t  g: get configuration\n");
+    printf("\t\t\t  S: get configuration stat\n");
+    printf("\t\t\t  s: set configuration\n");
+    printf("\t\t\t  l: list configurations\n");
     printf("  -c configuration\tthe name of the configuration\n");
     printf("  -h help\t\tdisplay this help\n");
     printf("  -n hostname\t\tthe server name (default is localhost)\n");
@@ -56,21 +61,24 @@ void parse_params(int argc, char** argv, params* p)
             default: help();
         }
     }
-    if(p->owner == NULL || p->key == NULL || p->action == NULL) help();
+    if((p->owner && !p->key) || (p->host_name && !p->port) || !p->action)
+        help();
 }
 etcjs_result* do_action(params* p)
 {
     etcjs_owner* owner;
     etcjs_result* result;
-    etcjs_init(p->host_name, p->port);
-    owner = etcjs_owner_new(p->owner, p->key);
+    if(!p->host_name) etcjs_init_from_configuration();
+    else etcjs_init(p->host_name, p->port);
+    owner = p->owner ? etcjs_owner_new(p->owner, p->key)
+        : etcjs_owner_new_from_configuration();
     switch(p->action[0])
     {
         case 'c': result = etcjs_owner_create(owner); break;
         case 'g': result = etcjs_config_get(owner, p->configuration); break;
         case 'S': result = etcjs_config_stat(owner, p->configuration); break;
         case 's': result = etcjs_config_set(owner, p->configuration,
-                          p->data == 0?"":p->data); break;
+                          p->data == 0?"":p->data, 1, 0, 0); break;
         case 'l': result = etcjs_config_list(owner); break;
         default: help();
     }

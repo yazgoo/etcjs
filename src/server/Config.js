@@ -1,19 +1,41 @@
 var Paths = require('./Paths.js').Paths
 var fs = require('fs')
+var k = require('constants')
 function Config(owner, name)
 {
     this.owner = owner
     this.name = name;
     var self = this
-    this.set = function(data, callback)
+    this.set = function(offset, size, data, callback)
     {
-        self.data = data
-        fs.writeFile(this.owner.paths.config(name), data, callback)
+        var path = this.owner.paths.config(name);
+        if(offset == null || size == null) fs.writeFile(path, data, callback)
+        else
+        {
+            data = new Buffer(data, 'utf8')
+            self.data = data
+            fs.open(path, k.O_WRONLY, 0666, function(err, fd)
+                    {
+                        console.log("offest: " + offset)
+                        if(err != null) callback(null)
+                        else fs.write(fd, data, 0, parseInt(size), parseInt(offset), callback);
+                    })
+        }
     }
-    this.get = function(callback)
+    this.get = function(offset, size, callback)
     {
         fs.readFile(this.owner.paths.config(name), null, 
                function(err, data) { callback(data) })
+    }
+    this.touch = function(callback)
+    {
+        fs.writeFile(this.owner.paths.config(name), "",
+               function(err, data) { callback(data) })
+    }
+    this.remove = function(callback)
+    {
+        fs.unlink(this.owner.paths.config(name),
+               function(err) { callback(err) })
     }
     this.list = function(callback)
     {
