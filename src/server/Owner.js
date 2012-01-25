@@ -6,8 +6,8 @@ function Owner(name, key)
     var self = this
     this.name = name
     var crypto = require('crypto')
-      , shasum = crypto.createHash('sha1');
-    shasum.update(key);
+      , shasum = crypto.createHash('sha1')
+    shasum.update(key)
     this.key = shasum.digest('hex')
     this.paths = new Paths().get(this.name)
     this.callback

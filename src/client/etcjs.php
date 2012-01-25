@@ -2,9 +2,9 @@
 class EtcjsUser
 {
     protected $etcjs;
-    protected function set_etcjs($etcjs)
+    public function set_etcjs($etcjs)
     {
-        $this->etcjs = etcjs;
+        $this->etcjs = $etcjs;
     }
 }
 class Owner extends EtcjsUser
@@ -12,14 +12,12 @@ class Owner extends EtcjsUser
     public $name, $key;
     function __construct($name, $key)
     {
-        $this->$name = $name; 
-        $this->$key = $key;
+        $this->name = $name; 
+        $this->key = $key;
     }
     public function create()
     {
-        return $etcjs->post("owner/create", ETCJS::CONTENT, new array(
-            "name" => $this->name,
-            "key" => $this->key);
+        return $etcjs->post("owner/create", ETCJS::CONTENT);
     }
 }
 class Server
@@ -34,49 +32,90 @@ class Server
 }
 class Configuration extends EtcjsUser
 {
-    function __construct(owner, name)
+    protected $name;
+    function __construct($name)
     {
+        $this->name = $name;
     }
-    protected function post($what = Etcjs::CONTENT, $array = new array())
+    protected function post($what = Etcjs::CONTENT, $array = array())
     {
-        $trace=debug_backtrace();
-        $caller=array_shift($trace);
-        $array = new array("owner" => $owner->name, "key" => $owner->key,
-            "name" => $name) + $array
-        return $etcjs->post("config/" . $caller['function'], $what, $array);
+        $trace = debug_backtrace();
+        $caller = array_shift($trace);
+        $caller = $trace[0]['function'];
+        $array = array("name" => $this->name) + $array;
+        return $this->etcjs->post("config/" . $caller, $what, $array);
     }
-    public function set($content)
+    public function set($content, $offset = null, $size = 0)
     {
-        return $this->post(ETCJS_CONTENT, new array("content" => $content))
-    }
-    public function set($content, $offset, $size)
-    {
-        return $this->post(ETCJS_CONTENT, new array(
+        if($offset == null)
+            return $this->post(Etcjs::CONTENT, array("content" => $content));
+        else return $this->post(Etcjs::CONTENT, array(
             "content" => $content,
             "offset" => $offset,
-            "size" => $size);
+            "size" => $size));
     }
     public function touch() { return $this->post(); }
     public function delete() { return $this->post(); }
     public function get() { return $this->post(); }
     public function stat() { return $this->post(); }
-    public static function list()
+    public function list_($etcjs)
     {
-        return $etcjs->post("config/list", Etcjs::LIST, new array(
-            "owner" => $owner->name, "key" => $owner->key));
+        return $etcjs->post("config/list", Etcjs::LIST_, array());
+    }
+}
+class Result
+{
+    public $type, $result;
+    function __construct($type, $result)
+    {
+        $this->type = $type;
+        $this->result = $result;
     }
 }
 class Etcjs
 {
-    protected $owner;
-    function __construct($owner)
+    const ERROR = 0;
+    const LIST_ = 1;
+    const CONTENT = 2;
+    protected $owner, $sever, $handle;
+    function __construct($owner, $server)
     {
         $this->owner = $owner;
+        $this->server = $server;
         $this->owner->set_etcjs($this);
+        $this->handle = curl_init();
     }
     public function getConfiguration($name)
     {
-        return new Configuration($this->owner, $this->name);
+        $config = new Configuration($name);
+        $config->set_etcjs($this);
+        return $config;
     }
+    public function post($path, $type, $array)
+    {
+        $array = array("owner" => $this->owner->name,
+            "key" => $this->owner->key) + $array;
+        $url = "http://".$this->server->host_name.":"
+            .$this->server->port."/".$path;
+        curl_setopt($this->handle, CURLOPT_URL, $url);
+        curl_setopt($this->handle, CURLOPT_POSTFIELDS,
+            http_build_query($array));
+        curl_setopt($this->handle, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($this->handle);
+        $error_code = curl_getinfo($this->handle, CURLINFO_HTTP_CODE); 
+        return new Result($error_code == 200?$type:Etcjs::ERROR, $result);
+    }
+    public function cleanup()
+    {
+        curl_close($this->handle);
+    }
+
 }
+$etcjs = new Etcjs(new Owner("yazgoo", "foo"), new Server("localhost", 1337));
+$configuration = $etcjs->getConfiguration("bijour");
+$configuration->touch();
+$configuration->set("content");
+$configuration->get();
+print_r(Configuration::list_($etcjs));
+$etcjs->cleanup();
 ?>
