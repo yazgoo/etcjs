@@ -58,9 +58,12 @@ class Configuration extends EtcjsUser
     public function delete() { return $this->post(); }
     public function get() { return $this->post(); }
     public function stat() { return $this->post(); }
-    public function list_($etcjs)
+    public function list_()
     {
-        return $etcjs->post("config/list", Etcjs::LIST_, array());
+        $result = $this->etcjs->post("config/list", Etcjs::LIST_, array());
+        if($result->type != Etcjs::ERROR)
+            $result->result = explode("\n", $result->result);
+        return $result;
     }
 }
 class Result
@@ -111,11 +114,4 @@ class Etcjs
     }
 
 }
-$etcjs = new Etcjs(new Owner("yazgoo", "foo"), new Server("localhost", 1337));
-$configuration = $etcjs->getConfiguration("bijour");
-$configuration->touch();
-$configuration->set("content");
-$configuration->get();
-print_r(Configuration::list_($etcjs));
-$etcjs->cleanup();
 ?>

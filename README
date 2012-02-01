@@ -1,0 +1,62 @@
+roadmap to version 0.1.0:
+    - laravel web client
+roadmap to version 0.1.1
+    - unit testing
+roadmap to version 0.1.2
+    - baudrel testing
+description:
+    Etcjs is a simple HTTP based configuration manager.
+    It allows to create users and manage configurations
+    for each one of them.
+core components:
+    server:
+        description:
+            Etcjs server
+        prerequisites:
+            - node.js
+        source path:
+            src/server
+    client:
+        c:
+            etcjs:
+                description:
+                    A client library for etcjs
+                prerequisites:
+                    - libcurl
+                source path:
+                    src/client/etcjs.{c,h}
+            etcjs_cli:
+                description:
+                    A command line client for etcjs
+                prerequisites:
+                    - client/c/etcjs
+                source path:
+                    src/client/etcjs_cli.c
+            etcjs_fuse:
+                description:
+                    A fuse driver for etcjs
+                prerequisites:
+                    - client/c/etcjs
+                    - fuse
+                source path:
+                    src/client/etcjs_fuse.c
+        php:
+            etjs:
+                description:
+                    A client library for etcjs
+                prerequisites:
+                    - curl extension
+                source path:
+                    src/client/etcjs.php
+            etcjs_laravel:
+                description:
+                    A laravel client for etcjs
+                prerequisites:
+                    - laravel
+                    - client/php/etcjs
+                source path:
+                    src/client/etcjs_laravel
+        javascript:
+            TODO
+automated tests components:
+    see tst/
