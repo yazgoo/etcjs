@@ -10,11 +10,12 @@ function on_result($result, $callback)
     if($result->type != Etcjs::ERROR)
     {
         $view = $callback($result->result);
+        if($view == null) return null;
         if(get_class($view) == 'Laravel\View') return wrap($view);
         return $view;
     }
     else
-        View::make('partials.error')->with('error', $result->result);
+        return View::make('partials.error')->with('error', $result->result);
 }
 function on_get_configuration($name, $callback)
 {
@@ -23,6 +24,17 @@ function on_get_configuration($name, $callback)
     $result = $callback($configuration);
     $etcjs->cleanup();
     return $result;
+}
+
+function on_get_configuration_redirect_to($name, $redirect, $callback)
+{
+    return on_get_configuration($name, function($configuration)
+        use ($name, $redirect, $callback) {
+        return on_result($callback($configuration),
+            function($result) use ($redirect) {
+                return Redirect::to($redirect);
+            });
+    });
 }
 return array
 (
@@ -49,13 +61,51 @@ return array
             });
         });
     },
-    'PUT /config/save/(:any)' => function($name)
+    'GET /config/download/(:any)' => function($name)
     {
         return on_get_configuration($name, function($configuration) use ($name) {
-            return on_result($configuration->set(Input::get('content')),
-                function($result) use ($name) {
-                    return Redirect::to('config/edit/'.$name);
-                });
+            return on_result($configuration->get(), function($result) use ($name) {
+                return Response::make($result, 200, array(
+                    'Content-Type' => 'text/plain',
+                    'Content-Description' => 'File Transfer',
+                    'Content-Disposition' => 'attachment; filename="'.$name.'"'
+                ));
+            });
+        });
+    },
+    'PUT /config/save/(:any)' => function($name)
+    {
+        return on_get_configuration_redirect_to($name, 'config/edit/'.$name,
+            function($configuration) { return $configuration->set(Input::get('content')); });
+    },
+        'GET /config/delete/(:any)'
+        => array('before' => 'confirm:delete this file,config/list', function($name)
+    {
+        return on_get_configuration_redirect_to($name, 'config/list',
+            function($configuration) { return $configuration->delete(); });
+    }),
+    'GET /config/create' => function()
+    {
+        print_r(Input::get('name'));
+        $name = Input::get('name');
+        if($name == '') return wrap(View::make('create.form'));
+        else return Redirect::to('/config/create/'. HTML::entities($name));
+    },
+    'GET /config/create/(:any)' => function($name)
+    {
+        return on_get_configuration_redirect_to($name, 'config/list',
+            function($configuration) { return $configuration->touch(); });
+    },
+    'GET /config/stat/(:any)' => function($name)
+    {
+        return on_get_configuration($name, function($configuration) use ($name) {
+            return on_result($configuration->stat(), function($result) use ($name) {
+                $lines = split("\n", $result); 
+                foreach($lines as $line)
+                    echo $line."<br/>";
+                // TODO view
+                return null;
+            });
         });
     },
 );
