@@ -1,3 +1,5 @@
 <hr/>
-Laravel client for etcjs created by yazgoo
+<?
+echo Lang::line('client.about')->get();
+?>
 </html>
