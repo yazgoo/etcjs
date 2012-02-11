@@ -10,12 +10,18 @@ description:
     for each one of them.
 core components:
     server:
-        description:
-            Etcjs server
-        prerequisites:
-            - node.js
-        source path:
-            src/server
+        javascript:
+            description:
+                Etcjs server
+            prerequisites:
+                - node.js
+            source path:
+                src/server
+        ? (TODO):
+            description:
+                Etcjs server cache, when net is not available anymore…
+            source path:
+                src/server/cache
     client:
         c:
             etcjs:
@@ -58,5 +64,9 @@ core components:
                     src/client/etcjs_laravel
         javascript:
             TODO
+        ruby, python, …:
+            TOBIND based on C implementation
+packages:
+    TODO based on projectbuilder.org
 automated tests components:
     see tst/
