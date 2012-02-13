@@ -106,6 +106,8 @@ class Etcjs
         curl_setopt($this->handle, CURLOPT_RETURNTRANSFER, true);
         $result = curl_exec($this->handle);
         $error_code = curl_getinfo($this->handle, CURLINFO_HTTP_CODE); 
+        if($error_code < 100)
+            $result = "Network layer error: ".curl_error($this->handle);
         return new Result($error_code == 200?$type:Etcjs::ERROR, $result);
     }
     public function cleanup()

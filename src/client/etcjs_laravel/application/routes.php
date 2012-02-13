@@ -17,7 +17,7 @@ function try_to_log_in()
 function on_result($result, $callback)
 {
     if($result->type == Etcjs::ERROR)
-        return View::make('partials.error')->with('error', $result->result);
+        return wrap(View::make('partials.error')->with('error', $result->result));
     $view = $callback($result->result);
     if($view == null) return null;
     if(get_class($view) == 'Laravel\View') return wrap($view);
