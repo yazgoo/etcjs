@@ -1,0 +1,9 @@
+Cache:
+    Here is how the cache (beetwin parenthesis) works:
+        - if server answers to ping:
+            client <===> (interface <===> kernel <===> client) <===> server
+                                            ||
+                                            \/
+                                       (storage lib)
+        - if server did not answer to last ping:
+            client <===> (interface <===> kernel <===> storage lib)
