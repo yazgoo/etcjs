@@ -1,19 +1,22 @@
 ETCJS_ERROR = 0
 ETCJS_LIST = 1
 ETCJS_CONTENT = 2
-function Owner()
+function Owner(name, key)
 {
+    this.name = name
+    this.key = key
     this.create = function(callback)
     {
         this.etcjs.post("owner/create", ETCJS_CONTENT)
     }
 }
-function Configuration()
+function Configuration(name)
 {
+    this.name = name
     this.post = function(callback, what, array)
     {
         what = what || ETCJS_CONTENT
-        array = array || new Array()
+        array = array || {name: this.name}
         this.etcjs.post(callback,
                 "config/" + arguments.callee.caller.name, what, array)
     }
@@ -62,14 +65,61 @@ function Etcjs(owner, server)
         config.etcjs = this
         return config
     }
-    this.post = function(callback, path, type, array)
+    this.encode_options = function(options)
     {
-        console.log(path + " | " + type + " | " + array)
+        var result = ""
+        var i = 0
+        for(key in options)
+        {
+            if(i > 0) result += "&"
+            result += key + "=" + options[key]
+            i++
+        }
+        return result
+    }
+    this.xml_http_post = function(callback, path, type, options)
+    {
+            xmlhttp = new XMLHttpRequest();
+            xmlhttp.open("GET", "http://" + this.server.host_name + ":"
+                    + this.server.port + path + this.encode_options(options))
+            xmlhttp.onreadystatechange=function()
+            {
+                if (xmlhttp.readyState==4)
+                    callback(xmlhttp.status == 200?type:ETCJS_ERROR,
+                            xmlhttp.responseText)
+            }
+    }
+    self = this
+    this.nodejs_post = function(callback, path, type, options)
+    {
+        var client = require('http')
+            .createClient(self.server.port, self.server.host_name)
+        var params = self.encode_options(options)
+        var request = client.request("GET", "/" + path, {
+                        "Content-Length": "" + params.length})
+        var result = ""
+        request.write(params)
+        request.end();
+        request.on('response', function(response)
+        {
+            var status = response.statusCode
+            response.on('data', function(data) { result += data })
+            response.on('end', function()
+                {
+                    callback(new Result(status == 200?type:ETCJS_ERROR, result))
+                })
+        })
+    }
+    this.post = function(callback, path, type, options)
+    {
+        options.owner = this.owner.name
+        options.key = this.owner.key
+        var f = typeof XMLHttpRequest == 'function'?
+            this.xml_http_post:this.nodejs_post
+        f(callback, path, type, options)
     }
 }
 var etcjs = new Etcjs(new Owner("yazgoo", "foo"), new Server("localhost", 1337))
 var config = etcjs.get_configuration("blah")
-config.get(function(result)
-        {
-            console.log(result)
-        })
+config.get(function(result) {
+    console.log(">" + result.type + ":\n" + result.result) })
