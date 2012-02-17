@@ -49,6 +49,16 @@ function Server(host_name, port)
     this.host_name = host_name
     this.port = port
 }
+/*
+   This might be used instead of Server if you want to query a file on the
+   same domain/port (I use it with Apache httpd reverse proxy, because of
+   the cross site limitations of XMLHttpRequest).
+   This behaviour is only available with XMLHttpRequest client, not with node.js
+   */
+function LocalPath(path)
+{
+    this.path = path
+}
 function Result(type, result)
 {
     this.type = type
@@ -79,18 +89,20 @@ function Etcjs(owner, server)
     }
     this.xml_http_post = function(callback, path, type, options)
     {
-        var uri = "http://" + self.server.host_name + ":" + self.server.port
-            + "/" + path + "?" + self.encode_options(options)
+        var uri = self.server.path == undefined?
+            "http://" + self.server.host_name + ":" + self.server.port
+            : self.server.path + "/" + path 
         var xmlhttp = new XMLHttpRequest();
-        xmlhttp.onreadystatechange=function()
+        xmlhttp.open("POST", uri)
+        xmlhttp.onreadystatechange = function()
         {
-            if (xmlhttp.readyState==4)
+            if (xmlhttp.readyState == 4)
             {
                 callback(xmlhttp.status == 200?type:ETCJS_ERROR,
                         xmlhttp.responseText)
             }
         }
-        xmlhttp.open("GET", uri)
+        xmlhttp.send(self.encode_options(options))
     }
     self = this
     this.nodejs_post = function(callback, path, type, options)

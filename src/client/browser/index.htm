@@ -1,9 +1,12 @@
 <script type="text/JavaScript" src="etcjs.js">
 </script>
+<h1>Etcjs js client</h1>
+<div id="text"></div>
 <script type="text/javascript">
-var etcjs = new Etcjs(new Owner("yazgoo", "foo"), new Server("localhost", 1337))
+/* etcjs is available via the reverse proxy on the same server under /etcjs,
+   hence LocalPath (instead of the usual Server) */
+var etcjs = new Etcjs(new Owner("yazgoo", "foo"), new LocalPath("/etcjs"))
 var config = etcjs.get_configuration("blah")
-config.get(function(result) {
-        document.write( + result.type + ":\n" + result.result)
-        })
+config.get(function(type, result)
+        { document.getElementById("text").innerHTML = result; })
 </script>
