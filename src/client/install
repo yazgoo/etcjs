@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+function die
+{
+    echo $@
+    exit 1
+}
+function copy
+{
+    cp -Lr * $TARGET || die "failed copying to $TARGET"
+}
+function substitute
+{
+    SEP=${SEP:=","}
+    sed -i s${SEP}#{$1}${SEP}$3${SEP} "$TARGET/$5" \
+        || die "failed substituting $1 with $3 in $5"
+}

@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+. ../install
+[ "$TARGET" != "" ]  \
+    || die "please specify a TARGET directory"
+copy

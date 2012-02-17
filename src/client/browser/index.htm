@@ -1,0 +1,9 @@
+<script type="text/JavaScript" src="etcjs.js">
+</script>
+<script type="text/javascript">
+var etcjs = new Etcjs(new Owner("yazgoo", "foo"), new Server("localhost", 1337))
+var config = etcjs.get_configuration("blah")
+config.get(function(result) {
+        document.write( + result.type + ":\n" + result.result)
+        })
+</script>

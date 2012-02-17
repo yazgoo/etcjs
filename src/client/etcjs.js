@@ -79,15 +79,18 @@ function Etcjs(owner, server)
     }
     this.xml_http_post = function(callback, path, type, options)
     {
-            xmlhttp = new XMLHttpRequest();
-            xmlhttp.open("GET", "http://" + this.server.host_name + ":"
-                    + this.server.port + path + this.encode_options(options))
-            xmlhttp.onreadystatechange=function()
+        var uri = "http://" + self.server.host_name + ":" + self.server.port
+            + "/" + path + "?" + self.encode_options(options)
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange=function()
+        {
+            if (xmlhttp.readyState==4)
             {
-                if (xmlhttp.readyState==4)
-                    callback(xmlhttp.status == 200?type:ETCJS_ERROR,
-                            xmlhttp.responseText)
+                callback(xmlhttp.status == 200?type:ETCJS_ERROR,
+                        xmlhttp.responseText)
             }
+        }
+        xmlhttp.open("GET", uri)
     }
     self = this
     this.nodejs_post = function(callback, path, type, options)
@@ -119,7 +122,3 @@ function Etcjs(owner, server)
         f(callback, path, type, options)
     }
 }
-var etcjs = new Etcjs(new Owner("yazgoo", "foo"), new Server("localhost", 1337))
-var config = etcjs.get_configuration("blah")
-config.get(function(result) {
-    console.log(">" + result.type + ":\n" + result.result) })
