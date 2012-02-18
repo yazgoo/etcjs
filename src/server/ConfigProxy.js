@@ -33,6 +33,17 @@ function Config(owner, name)
                     else callback(null, result.result)
                 })
     }
+    this.stat_string_to_map = function(string)
+    {
+        var lines = string.split("\n")
+        var map = {}
+        for(i in lines)
+        {
+            var item = lines[i].split("=")
+                map[item[0]] = item[1]
+        }
+        return map
+    }
     this.stat = function(callback)
     {
         this.remote_config.stat(function(result)
@@ -43,14 +54,7 @@ function Config(owner, name)
                     }
                     else
                     {
-                        var lines = result.result.split("\n")
-                        var map = {}
-                        for(i in lines)
-                        {
-                            var item = lines[i].split("=")
-                            map[item[0]] = item[1]
-                        }
-                        callback(null, map)
+                        callback(null, self.stat_string_to_map(result.result))
                     }
                 })
     }
