@@ -1,6 +1,7 @@
 ETCJS_ERROR = 0
 ETCJS_LIST = 1
 ETCJS_CONTENT = 2
+var fs = require('fs')
 function Owner(name, key)
 {
     this.name = name
@@ -36,10 +37,10 @@ function Configuration(name)
     this.list = function list(callback)
     {
         this.etcjs.post(
-                function(callack)
+                function(result)
                 {
-                    if(result.type != EtcjsERROR)
-                    result.result = explode("\n", result.result)
+                    if(result.type != ETCJS_ERROR)
+                    result.result = result.result.split("\n")
                     callback(result)
                 }, "config/list", ETCJS_LIST, new Array())
     }
@@ -63,6 +64,14 @@ function Result(type, result)
 {
     this.type = type
     this.result = result
+}
+function ServerFactory(suffix)
+{
+    suffix = suffix || ""
+    content = fs.readFileSync(
+            process.env.HOME + "/.config/etcjs_cli/server" + suffix, "utf-8")
+    data = content.split(":")
+    return new Server(data[0], data[1])
 }
 function Etcjs(owner, server)
 {
@@ -134,3 +143,8 @@ function Etcjs(owner, server)
         f(callback, path, type, options)
     }
 }
+module.exports.Etcjs = Etcjs
+module.exports.Configuration = Configuration
+module.exports.Server = Server
+module.exports.ServerFactory = ServerFactory
+module.exports.LocalPath = LocalPath

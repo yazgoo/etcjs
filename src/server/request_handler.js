@@ -1,7 +1,14 @@
 var querystring = require('querystring')
 var sys = require('sys')
-var Owner = require('./Owner').Owner
-var Config = require('./Config').Config
+String.prototype.capitalize = function()
+{
+    if(this.length == 0) return this;
+    return this.charAt(0).toUpperCase() + this.slice(1);
+}
+driver = driver || ""
+driver = driver.capitalize()
+var Owner = require('./Owner' + driver).Owner
+var Config = require('./Config' + driver).Config
 function write_header(response, ok)
 {
     response.writeHead(ok?200:401,

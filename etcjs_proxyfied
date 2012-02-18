@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+store="$PWD"/store
+(cd src/server; node etc.js 1336 $store)
