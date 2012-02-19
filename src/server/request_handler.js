@@ -56,7 +56,6 @@ function set_config(response, post)
             response.end()
             return
         }
-        console.log("setting config " + post.content)
         config.set(post.offset, post.size, post.content, function(err)
         {
             error_handling_write_parameter(response, err, "creating succeeded\n")
@@ -115,7 +114,11 @@ function list_config(response, post)
         {
             error_handling_write(response, err, names, function(names)
             {
-                for(i in names) response.write(names[i] + "\n")
+                for(i in names)
+                {
+                    response.write(names[i])
+                    if(i < (names.length - 1)) response.write("\n")
+                }
             })
         })
     })
@@ -130,7 +133,11 @@ function stat_config(response, post)
             {
                 for(key in stats)
                     if(typeof stats[key] != 'function')
+                    {
                         response.write(key + "=" + stats[key] + "\n")
+                console.log(key + "=" + stats[key] + "\n")
+
+                    }
             })
         })
     })

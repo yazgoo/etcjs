@@ -16,9 +16,16 @@ function Config(owner, name)
             self.data = data
             fs.open(path, k.O_WRONLY, 0666, function(err, fd)
                     {
-                        console.log("offest: " + offset)
-                        if(err != null) callback(null)
-                        else fs.write(fd, data, 0, parseInt(size), parseInt(offset), callback);
+                        if(err != null)
+            {
+                callback(null)
+                            console.log("err " + err)
+            }
+                        else
+                        {
+                            console.log("write")
+                            fs.write(fd, data, 0, parseInt(size), parseInt(offset), callback);
+                        }
                     })
         }
     }

@@ -17,11 +17,12 @@ function Configuration(name)
     this.post = function(callback, what, array)
     {
         what = what || ETCJS_CONTENT
-        array = array || {name: this.name}
+        array = array || {}
+        array["name"] = this.name
         this.etcjs.post(callback,
                 "config/" + arguments.callee.caller.name, what, array)
     }
-    this.set = function(content, callback, offset, size)
+    this.set = function set(content, callback, offset, size)
     {
         offset = offset || null
         size = size || 0
@@ -31,7 +32,7 @@ function Configuration(name)
                 {"content":content, "offset":offset, "size":size})
     }
     this.touch = function touch(callback) { this.post(callback); }
-    this.delete_ = function delete_(callback) { this.post(callback); }
+    this.remove = function remove(callback) { this.post(callback); }
     this.get = function get(callback) { this.post(callback); }
     this.stat = function stat(callback) { this.post(callback); }
     this.list = function list(callback)
